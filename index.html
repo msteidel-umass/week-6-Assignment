@@ -115,7 +115,7 @@
 			/*-------------------------------------------------------*/
 			/*---------------------- Tooltip ------------------------*/
 			/*-------------------------------------------------------*/
-			const tooltip = d3.select("#tooltip");
+			let tooltip = d3.select("#tooltip");
 
 			/*--------------------------------------------------------*/
 			/*----------------- channelling marks --------------------*/
@@ -149,6 +149,34 @@
 						.duration(200)
 						.style("opacity", 0)
 				})
+
+            svg = d3.select("body").append("svg")
+                .attr("width", "100vw")
+                .attr("height", "100vh");
+
+            svg.selectAll("path")
+                .data(geojson.features)
+                .enter()
+                .append("path")
+                .attr("d", d => geoPath_generator(d))
+                //.attr("fill", d => colorInterpolator(logScale(d['properties']['POP1980'])))
+                .attr("fill", d => colorInterpolator(linearScale(d['properties']['POP1980'])))
+                .on("mouseenter", (m, d) => {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9)
+                    tooltip.html(d['properties']['TOWN'])
+                        .style("left", m.clientX + "px")
+                        .style("top", m.clientY + "px");
+                })
+                .on("mousemove", (m, d) => {
+                    tooltip.style("opacity", .9)
+                })
+                .on("mouseout", (m, d) => {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", 0)
+                })
 		})
 	</script>
 </body>
