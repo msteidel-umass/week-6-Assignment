@@ -72,7 +72,7 @@
 			const topo_data = data[0];
 			const county_data = data[1];
 
-            var colors = ["red", "green", "blue", "yellow", "orange", "purple", "indigo", "firebrick", "maroon", "cyan", "magenta", "honeydew", "salmon", "lime"];
+			var colors = ["red", "green", "blue", "yellow", "orange", "purple", "indigo", "firebrick", "maroon", "cyan", "magenta", "honeydew", "salmon", "lime"];
 
 			var countiesAndColors = {};
 
@@ -168,9 +168,36 @@
 							return countiesAndColors[d.properties.FIPS_STCO];
 					});
 				})
+
 				.on("mousemove", (m, d) => {
-					tooltip.style("opacity", .9)
-				})
+                    tooltip.style("opacity", .9)
+                    let county = d.properties.FIPS_STCO;
+                    let county_data = {
+                        POP1980: {name: "Population 1980: ", value: 0},
+                        POP1990: {name: "Population 1990: ", value: 0},
+                        POP2000: {name: "Population 2000: ", value: 0},
+                        POP2010: {name: "Population 2010: ", value: 0}
+                    };
+
+                    topo_data.objects.ma.geometries.forEach((d) => {
+                        if (d.properties.FIPS_STCO == county) {
+                            county_data.POP1980.value = county_data.POP1980.value + d.properties.POP1980;
+                            county_data.POP1990.value = county_data.POP1990.value + d.properties.POP1990;
+                            county_data.POP2000.value = county_data.POP2000.value + d.properties.POP2000;
+                            county_data.POP2010.value = county_data.POP2010.value + d.properties.POP2010;
+                        }
+                    })
+
+                    d3.select("#data").style("visibility", "visible")
+                        .selectAll("p")
+                        .data(Object.values(county_data))
+                        .enter()
+                        .append("p")
+                        .text((d) => {
+                            return d.name + d.value
+                        });
+                })
+
 				.on("mouseleave", (m, d) => {
 					tooltip.transition()
 						.duration(200)
@@ -178,6 +205,8 @@
 					d3.selectAll("path").attr("fill", (d)=> {
 						return countiesAndColors[d.properties.FIPS_STCO];
 					});
+
+                    d3.select("#data").style("visibility", "hidden").selectAll("p").remove();
 				})
 		})
 	</script>
