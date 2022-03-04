@@ -40,7 +40,6 @@
 		}
 	</style>
 </head>
-
 <body>
 	<h1 style="text-align:center;">Major Assignment 2</h1>
 	<h3 style="text-align:center;">Michael Steidel</h3>
@@ -73,9 +72,7 @@
 			const topo_data = data[0];
 			const county_data = data[1];
 
-			var colors = ["deepskyblue", "green", "yellow", "orange", "purple",
-				"lime", "mistyrose", "royalblue", "coral", "aqua",
-				"khaki", "deeppink", "crimson", "slateblue"];
+            var colors = ["red", "green", "blue", "yellow", "orange", "purple", "indigo", "firebrick", "maroon", "cyan", "magenta", "honeydew", "salmon", "lime"];
 
 			var countiesAndColors = {};
 
@@ -153,12 +150,8 @@
 				.enter()
 				.append("path")
 				.attr("d", d => geoPath_generator(d))
-				//.attr("fill", d => colorInterpolator(logScale(d['properties']['POP1980'])))
-				//.attr("fill", d => colorInterpolator(linearScale(d['properties']['POP1980'])))
-				/* If FIPS code of town matches that of county, fill with associated color */
 				.attr("fill", (d) => {
-					color = countiesAndColors[d.properties.FIPS_STCO] /*retreive associate color with county No.*/
-					return color;
+					return countiesAndColors[d.properties.FIPS_STCO];
 				})
 				.on("mouseenter", (m, d) => {
 					let county = d.properties.FIPS_STCO;
@@ -168,13 +161,9 @@
 					tooltip.html(d['properties']['TOWN'])
 						.style("left", m.clientX + "px")
 						.style("top", m.clientY + "px");
-					/* Iterate through all town objects in SVG */
 					d3.selectAll("path").attr("fill", (d)=> {
-						mouseover_color = "darkslategrey";
-						/* If any of the towns are in the same county as the town moused-over, color them*/
 						if (d.properties.FIPS_STCO == county)
-							return mouseover_color;
-						/* else return the normal color for each town (no change on mouseover) */
+							return "gray";
 						else
 							return countiesAndColors[d.properties.FIPS_STCO];
 					});
@@ -183,11 +172,9 @@
 					tooltip.style("opacity", .9)
 				})
 				.on("mouseleave", (m, d) => {
-					let county = d.properties.FIPS_STCO;
 					tooltip.transition()
 						.duration(200)
 						.style("opacity", 0);
-					/* on mouse leave, color all towns their normal assigned county colors */
 					d3.selectAll("path").attr("fill", (d)=> {
 						return countiesAndColors[d.properties.FIPS_STCO];
 					});
@@ -195,5 +182,4 @@
 		})
 	</script>
 </body>
-
 </html>
