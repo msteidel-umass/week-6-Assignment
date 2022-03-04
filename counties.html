@@ -67,9 +67,26 @@
 		// open both files
 		Promise.all([
 			d3.json(MA_counties),
+			d3.csv("data/counties.csv")
 		]).then(data => {
 			// topology data
 			const topo_data = data[0];
+			const county_data = data[1];
+
+			var colors = ["deepskyblue", "green", "yellow", "orange", "purple",
+				"lime", "mistyrose", "royalblue", "coral", "aqua",
+				"khaki", "deeppink", "crimson", "slateblue"];
+
+			var countiesAndColors = {};
+
+			county_data.forEach((d, i) => {
+				countiesAndColors[d.FIPS] = colors[i];
+				return d[0];
+			});
+
+			topo_data.objects.ma.geometries.forEach((d) => {
+				return d;
+			});
 
 			/*-------------------------------------------------------*/
 			/*-----------------Topojson data handling----------------*/
@@ -105,7 +122,7 @@
 			/*-------------------------------------------------------*/
 			////https://observablehq.com/@d3/working-with-color
 			var colorInterpolator = d3.interpolateRgbBasis(["blue", "steelblue", "green", "purple", "red"])
-				// if the data is scaled using log scale
+			// if the data is scaled using log scale
 			let logScale = d3.scaleLog()
 				.domain(d3.extent(geojson.features, (d) => {
 					return d['properties']['POP2010']
@@ -131,29 +148,50 @@
 				.attr("width", "100vw")
 				.attr("height", "100vh");
 
-			svg.selectAll("path")
-				.data(geojson.features)
-				.enter()
-				.append("path")
-				.attr("d", d => geoPath_generator(d))
-				.attr("fill", d => colorInterpolator(logScale(d['properties']['POP2010'])))
-				//.attr("fill", d => colorInterpolator(linearScale(d['properties']['POP2010'])))
-				.on("mouseenter", (m, d) => {
-					tooltip.transition()
-						.duration(200)
-						.style("opacity", .9)
-					tooltip.html(d['properties']['TOWN'])
-						.style("left", m.clientX + "px")
-						.style("top", m.clientY + "px");
-				})
-				.on("mousemove", (m, d) => {
-					tooltip.style("opacity", .9)
-				})
-				.on("mouseout", (m, d) => {
-					tooltip.transition()
-						.duration(200)
-						.style("opacity", 0)
-				})
+	        svg.selectAll("path")
+	            .data(geojson.features)
+	            .enter()
+	            .append("path")
+	            .attr("d", d => geoPath_generator(d))
+	            //.attr("fill", d => colorInterpolator(logScale(d['properties']['POP1980'])))
+	            //.attr("fill", d => colorInterpolator(linearScale(d['properties']['POP1980'])))
+	            /* If FIPS code of town matches that of county, fill with associated color */
+	            .attr("fill", (d) => {
+	                color = countiesAndColors[d.properties.FIPS_STCO] /*retreive associate color with county No.*/
+	                return color;
+	            })
+	            .on("mouseenter", (m, d) => {
+	                let county = d.properties.FIPS_STCO;
+	                tooltip.transition()
+	                    .duration(200)
+	                    .style("opacity", .9)
+	                tooltip.html(d['properties']['TOWN'])
+	                    .style("left", m.clientX + "px")
+	                    .style("top", m.clientY + "px");
+	                /* Iterate through all town objects in SVG */
+	                d3.selectAll("path").attr("fill", (d)=> {
+	                    mouseover_color = "darkslategrey";
+	                    /* If any of the towns are in the same county as the town moused-over, color them*/
+	                    if (d.properties.FIPS_STCO == county)
+	                        return mouseover_color;
+	                    /* else return the normal color for each town (no change on mouseover) */
+	                    else
+	                        return countiesAndColors[d.properties.FIPS_STCO];
+	                });
+	            })
+	            .on("mousemove", (m, d) => {
+	                tooltip.style("opacity", .9)
+	            })
+	            .on("mouseleave", (m, d) => {
+	                let county = d.properties.FIPS_STCO;
+	                tooltip.transition()
+	                    .duration(200)
+	                    .style("opacity", 0);
+	                /* on mouse leave, color all towns their normal assigned county colors */
+	                d3.selectAll("path").attr("fill", (d)=> {
+	                    return countiesAndColors[d.properties.FIPS_STCO];
+	                });
+	            })
 		})
 	</script>
 </body>
